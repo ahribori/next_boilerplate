@@ -1,0 +1,18 @@
+{
+  "name": "next_bolierplate",
+  "version": "1.0.0",
+  "description": "Next.js + Redux + Dockerizing Boilerplate",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next",
+    "build": "next build",
+    "start": "next start"
+  },
+  "author": "Ahribori",
+  "license": "MIT",
+  "dependencies": {
+    "next": "^6.0.3",
+    "react": "^16.4.1",
+    "react-dom": "^16.4.1"
+  }
+}
