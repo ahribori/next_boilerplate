@@ -1,13 +1,12 @@
 import React from 'react';
 import { connect } from 'react-redux';
-import { startClock, serverRenderClock } from '../store';
+import { startClock, serverRenderClock } from '../store/Example';
 import Examples from '../components/examples';
 
 class Index extends React.Component {
     static getInitialProps({ reduxStore, req }) {
         const isServer = !!req;
         reduxStore.dispatch(serverRenderClock(isServer));
-
         return {};
     }
 
