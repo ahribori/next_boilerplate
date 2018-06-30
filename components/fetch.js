@@ -8,13 +8,15 @@ class Fetch extends React.Component {
   }
 
   async componentDidMount() {
-      await this.props.fetchRequest();
-      console.log(this.props.fetch.data)
+      if (!this.props.fetch) {
+          await this.props.fetchRequest().catch(() => {console.log(error)})
+          console.log(this.props.fetch)
+      }
   }
 
   render() {
     return (
-        <div>{ this.props.fetch ? JSON.stringify(this.props.fetch.data, null, 2) : 'Pending...' }</div>
+        <div>{ this.props.fetch ? JSON.stringify(this.props.fetch, null, 2) : 'Pending...' }</div>
     )
   }
 }
