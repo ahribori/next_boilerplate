@@ -5,6 +5,8 @@ import { startClock, serverRenderClock, fetch } from '../store/Example';
 import Examples from '../components/examples';
 import { Link } from '../routes';
 
+@withRouter
+@connect()
 class Index extends React.Component {
     static async getInitialProps({ reduxStore, req }) {
         const isServer = !!req;
@@ -38,4 +40,4 @@ class Index extends React.Component {
     }
 }
 
-export default withRouter(connect()(Index));
+export default Index;
