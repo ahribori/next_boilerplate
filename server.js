@@ -1,33 +1,31 @@
-const { createServer } = require('http');
-const { parse } = require('url');
 const next = require('next');
+const express = require('express');
+const { parse } = require('url');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const compression = require('compression');
+const routes = require('./routes');
 
 const dev = process.env.NODE_ENV !== 'production';
-const routes = require('./routes');
-const app = next({ dev });
-const handle = routes.getRequestHandler(app);
+const nextApp = next({ dev });
+const expressApp = express();
+const requestHandler = routes.getRequestHandler(nextApp);
 
-app.prepare().then(() => {
-    createServer((req, res) => {
-        // Be sure to pass `true` as the second argument to `url.parse`.
-        // This tells it to parse the query portion of the URL.
-        const parsedUrl = parse(req.url, true);
-        const { pathname, query } = parsedUrl;
+nextApp.prepare().then(() => {
+    expressApp.use(bodyParser.urlencoded({ extended: false }));
+    expressApp.use(bodyParser.json());
 
-        /*
-            Custom Server Side Routes
-         */
-        // if (pathname === '/a') {
-        //     app.render(req, res, '/b', query);
-        // } else if (pathname === '/b') {
-        //     app.render(req, res, '/a', query);
-        // } else {
-        //     handle(req, res, parsedUrl);
-        // }
+    if (process.env.NODE_ENV === 'production') {
+        expressApp.use(compression());
+        // only in development environment
+    } else {
+        // only in production environment
+        expressApp.use(morgan('dev'));
+    }
 
-        handle(req, res, parsedUrl);
+    expressApp.use(requestHandler);
 
-    }).listen(3000, err => {
+    expressApp.listen(3000, err => {
         if (err) throw err;
         console.log('> Ready on http://localhost:3000');
     });
