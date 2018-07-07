@@ -3,6 +3,7 @@ import React from 'react';
 import withReduxStore from '../lib/hoc/with-redux-store';
 import { Provider } from 'react-redux';
 
+@withReduxStore
 class MyApp extends App {
     render() {
         const { Component, pageProps, reduxStore } = this.props;
@@ -16,4 +17,4 @@ class MyApp extends App {
     }
 }
 
-export default withReduxStore(MyApp);
+export default MyApp;
