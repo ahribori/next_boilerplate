@@ -1,6 +1,7 @@
 import React from 'react';
 import { withRouter } from 'next/router';
 
+@withRouter
 class Page extends React.Component {
 
     static getInitialProps({ pathname, query }) {
@@ -29,4 +30,5 @@ class Page extends React.Component {
     }
 }
 
-export default withRouter(Page);
+export default Page;
+
