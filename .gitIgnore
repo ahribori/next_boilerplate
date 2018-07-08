@@ -1,4 +1,5 @@
 build
+bundles
 .next
 src/runnable/**/*.dev.js
 # Created by .ignore support plugin (hsz.mobi)

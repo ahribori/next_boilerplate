@@ -1,34 +1,90 @@
-const { createServer } = require('http');
-const { parse } = require('url');
 const next = require('next');
+const express = require('express');
+const { parse } = require('url');
+const bodyParser = require('body-parser');
+const morgan = require('morgan');
+const compression = require('compression');
+const LRUCache = require('lru-cache');
+const routes = require('./routes');
 
 const dev = process.env.NODE_ENV !== 'production';
-const routes = require('./routes');
-const app = next({ dev });
-const handle = routes.getRequestHandler(app);
+const nextApp = next({ dev });
+const expressApp = express();
+const requestHandler = routes.getRequestHandler(nextApp);
 
-app.prepare().then(() => {
-    createServer((req, res) => {
-        // Be sure to pass `true` as the second argument to `url.parse`.
-        // This tells it to parse the query portion of the URL.
-        const parsedUrl = parse(req.url, true);
-        const { pathname, query } = parsedUrl;
+// This is where we cache our rendered HTML pages
+const ssrCache = new LRUCache({
+    max: 100,
+    maxAge: 1000 * 60 * 5, // 5 minutes
+});
 
-        /*
-            Custom Server Side Routes
-         */
-        // if (pathname === '/a') {
-        //     app.render(req, res, '/b', query);
-        // } else if (pathname === '/b') {
-        //     app.render(req, res, '/a', query);
-        // } else {
-        //     handle(req, res, parsedUrl);
-        // }
+nextApp.prepare().then(() => {
+    expressApp.use(bodyParser.urlencoded({ extended: false }));
+    expressApp.use(bodyParser.json());
 
-        handle(req, res, parsedUrl);
+    if (process.env.NODE_ENV === 'production') {
+        expressApp.use(compression());
+        // only in development environment
+    } else {
+        // only in production environment
+        expressApp.use(morgan('dev'));
+    }
 
-    }).listen(3000, err => {
+    expressApp.use('*', (req, res, _next) => {
+        _next();
+    });
+
+    expressApp.get('/', (req, res) => {
+        return renderAndCache(req, res, '/');
+    });
+
+    expressApp.get('/page/:id', (req, res) => {
+        const queryParams = { id: req.params.id };
+        return renderAndCache(req, res, '/page', queryParams);
+    });
+
+    expressApp.use(requestHandler);
+
+    expressApp.listen(3000, err => {
         if (err) throw err;
         console.log('> Ready on http://localhost:3000');
     });
 });
+
+/*
+ * NB: make sure to modify this to take into account anything that should trigger
+ * an immediate page change (e.g a locale stored in req.session)
+ */
+function getCacheKey(req) {
+    return `${req.url}`;
+}
+
+async function renderAndCache(req, res, pagePath, queryParams) {
+    const key = getCacheKey(req);
+
+    // If we have a page in the cache, let's serve it
+    if (ssrCache.has(key)) {
+        res.setHeader('X-Cache', 'HIT');
+        res.send(ssrCache.get(key));
+        return;
+    }
+
+    try {
+        // If not let's render the page into HTML
+        const html = await nextApp.renderToHTML(req, res, pagePath, queryParams);
+
+        // Something is wrong with the request, let's skip the cache
+        if (res.statusCode !== 200) {
+            res.send(html);
+            return;
+        }
+
+        // Let's cache this page
+        ssrCache.set(key, html);
+
+        res.setHeader('X-Cache', 'MISS');
+        res.send(html);
+    } catch (err) {
+        nextApp.renderError(err, req, res, pagePath, queryParams);
+    }
+}
