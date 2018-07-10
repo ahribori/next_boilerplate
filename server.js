@@ -34,14 +34,14 @@ nextApp.prepare().then(() => {
         _next();
     });
 
-    expressApp.get('/', (req, res) => {
-        return renderAndCache(req, res, '/');
-    });
-
-    expressApp.get('/page/:id', (req, res) => {
-        const queryParams = { id: req.params.id };
-        return renderAndCache(req, res, '/page', queryParams);
-    });
+    // expressApp.get('/', (req, res) => {
+    //     return renderAndCache(req, res, '/');
+    // });
+    //
+    // expressApp.get('/page/:id', (req, res) => {
+    //     const queryParams = { id: req.params.id };
+    //     return renderAndCache(req, res, '/page', queryParams);
+    // });
 
     expressApp.use(requestHandler);
 
