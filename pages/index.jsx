@@ -1,12 +1,12 @@
 import React from 'react';
-import { connect } from 'react-redux';
 import { withRouter } from 'next/router';
 import { startClock, serverRenderClock, fetch } from '../store/Example';
 import Examples from '../components/examples';
 import { Link } from '../routes';
+import { inject } from '../lib/helpers/reduxStoreInjector';
 
 @withRouter
-@connect()
+@inject(['example'])
 class Index extends React.Component {
     static async getInitialProps({ reduxStore, req }) {
         const isServer = !!req;
