@@ -1,5 +1,6 @@
 import App, { Container } from 'next/app';
 import React from 'react';
+import '../lib/helpers/requestMiddleware';
 import withReduxStore from '../lib/hoc/with-redux-store';
 import { Provider } from 'react-redux';
 
